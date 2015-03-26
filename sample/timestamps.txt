@@ -1,0 +1,4 @@
+####<Jan 15, 2015 11:01:37 AM CST> <Info> <Management> <am80baby> <biztier> <[ACTIVE] ExecuteThread: '0' for queue: 'weblogic.kernel.Default (self-tuning)'> <<WLS Kernel>> <> <> <1421290897187> <BEA-141187> <Java system properties are defined as follows: 
+@@@2015-02-27 11:58:46,616 ERROR [pool-4-thread-1] PassMarkImagePoolImpl.getRandomImage(237) | Failed to get any random images from root category.
+3954   2013-03-06 02:34:02,224 INFO: Running task Appliance.prepareForApplianceQuickSetup
+5656   2013-03-06 02:34:03,926 INFO: Executing bash
