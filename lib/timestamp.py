@@ -18,10 +18,18 @@ class TimeUtil:
                 return True
         return False
 
+    def is_in_window_or_unsure(self, timestamp):
+        time = self.parse(timestamp)
+        if time is not None:
+            if self.start_win > time or time > self.end_win:
+                return False
+        return True
+
     def parse(self, timestamp):
         try:
             res = self.parser.parse(timestamp, fuzzy=True)
         except ValueError, err:
             sys.stderr.write("Failed to parse timestamp: %s, error: %s\n" % (timestamp, err))
             return None
-        return res
+        else:
+            return res

@@ -1,4 +1,36 @@
 ####<Jan 15, 2015 11:01:37 AM CST> <Info> <Management> <am80baby> <biztier> <[ACTIVE] ExecuteThread: '0' for queue: 'weblogic.kernel.Default (self-tuning)'> <<WLS Kernel>> <> <> <1421290897187> <BEA-141187> <Java system properties are defined as follows: 
+
+
+
 @@@2015-02-27 11:58:46,616 ERROR [pool-4-thread-1] PassMarkImagePoolImpl.getRandomImage(237) | Failed to get any random images from root category.
+
+
+
 3954   2013-03-06 02:34:02,224 INFO: Running task Appliance.prepareForApplianceQuickSetup
 5656   2013-03-06 02:34:03,926 INFO: Executing bash
+
+
+
+2013-03-25 10:37:01,798 INFO  [Main Thread] com.oracle.cie.domain.script.ScriptExecutor - set obj3 attribute Name to "AdminServer"
+2013-03-25 10:37:01,812 INFO  [Main Thread] com.oracle.cie.domain.script.ScriptExecutor - succeed: set obj3 attribute Name to "AdminServer"
+
+
+
+01/10/2015 13:30:38 admin interface (GET): URI [/cgi-bin/imageFolio.cgi?direct=<script>alert(document.cookie)</script>] failed because query strings are not supported for HTTP/1.1:GET
+01/10/2015 13:30:38 admin interface (GET): URI [/cgi-bin/if/imageFolio.cgi?direct=<script>alert(document.cookie)</script>] failed because query strings are not supported for HTTP/1.1:GET
+
+
+
+2015-03-12 03:28:37,457, [[ACTIVE] ExecuteThread: '2' for queue: 'weblogic.kernel.Default (self-tuning)'], (EmailNotificationHandler.java:181), trace.com.rsa.ims.criticalnotification.impl.EmailNotificationHandler, FATAL, am80baby.lab.rootrsa.shanghai,,,,Unable to reload admin-role principals emails: com.rsa.ims.admin.dal.ldap.ConnectionException: Failed to connect to the identity source. Possible reasons include invalid user name or password, connection refusal, connection timeout, or failure to resolve hostname.
+2015-03-12 03:29:25,247, [[ACTIVE] ExecuteThread: '2' for queue: 'weblogic.kernel.Default (self-tuning)'], (EmailNotificationHandler.java:181), trace.com.rsa.ims.criticalnotification.impl.EmailNotificationHandler, FATAL, am80baby.lab.rootrsa.shanghai,,,,Unable to reload admin-role principals emails: com.rsa.ims.admin.dal.ldap.ConnectionException: Failed to connect to the identity source. 
+
+
+
+INFO   | jvm 1    | main    | 2013/03/25 10:42:15 | <Mar 25, 2013 10:42:15 AM CST> <Notice> <Security> <BEA-090169> <Loading trusted certificates from the jks keystore file /opt/rsa/am/server/security/trust.jks.> 
+INFO   | jvm 1    | main    | 2013/03/25 10:42:19 | <Mar 25, 2013 10:42:19 AM CST> <Notice> <Security> <BEA-090082> <Security initializing using security realm rsa.> 
+
+
+
+STATUS | wrapper  | main    | 2013/03/28 09:16:33 | Launching a JVM...
+INFO   | jvm 1    | main    | 2013/03/28 09:16:34 | Wrapper (Version 3.2.3rsa4) http://wrapper.tanukisoftware.org
+INFO   | jvm 1    | main    | 2013/03/28 09:16:34 |   Copyright 1999-2006 Tanuki Software, Inc.  All Rights Reserved.
