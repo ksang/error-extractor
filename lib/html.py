@@ -1,5 +1,5 @@
 '''
-HTML format generator for Quasar Parsers
+HTML format generator
 '''
 
 class HTMLGen:

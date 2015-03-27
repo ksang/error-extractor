@@ -1,5 +1,5 @@
 '''
-MarkDown format generator for Quasar Parsers
+MarkDown format generator
 '''
 
 class MarkDown:

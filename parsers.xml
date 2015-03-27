@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Parsers>
+    <LineOperator>
+        <Row>
+            <value>error</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+        <Row>
+            <value>failed</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+        <Row>
+            <value>warning</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+        <Row>
+            <value>fatal</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+        <Row>
+            <value>critical</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+        <Row>
+            <value>exception</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+    </LineOperator>
+</Parsers>
+

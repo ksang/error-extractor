@@ -1,3 +1,7 @@
+'''
+Timestamp util for parsing logs
+'''
+
 import datetime,sys
 from dateutil.parser import parser
 
