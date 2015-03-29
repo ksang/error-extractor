@@ -11,15 +11,28 @@ class TimeUtil:
         try:
             self.start_win = datetime.datetime.fromtimestamp(start_win)
             self.end_win = datetime.datetime.fromtimestamp(end_win)
-        except Exception, err:
-            sys.stderr.write("Invalid window, start: %s, end: %s, error: %s\n"
-                                % (start_win, end_win, err))
+        except TypeError:
+            try:
+                self.start_win = self.parser.parse(start_win, fuzzy=True)
+                self.end_win = self.parser.parse(end_win, fuzzy=True)
+            except Exception, err:
+                sys.stderr.write("Invalid window, start: %s, end: %s, error: %s\n"
+                                    % (start_win, end_win, err))
+        if  self.start_win > self.end_win:
+            sys.stderr.write("Bad window, start: %s, end: %s, start > end\n"
+                                % (start_win, end_win))
 
     def is_in_window(self, timestamp):
-        time = self.parse(timestamp)
+        if type(timestamp) is datetime.datetime:
+            time = timestamp
+        else:
+            time = self.parse(timestamp)
         if time is not None:
-            if self.start_win <= time and time <= self.end_win:
-                return True
+            try:
+                if self.start_win <= time and time <= self.end_win:
+                    return True
+            except Exception:
+                return False
         return False
 
     def is_in_window_or_unsure(self, timestamp):
@@ -31,9 +44,8 @@ class TimeUtil:
 
     def parse(self, timestamp):
         try:
-            res = self.parser.parse(timestamp, fuzzy=True)
+            res = self.parser.parse(timestamp)
         except ValueError, err:
-            sys.stderr.write("Failed to parse timestamp: %s, error: %s\n" % (timestamp, err))
             return None
         else:
             return res

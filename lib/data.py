@@ -21,10 +21,17 @@ class DataUtil:
 
     def get_text_files(self, path):
         file_list = []
-        list_dirs = os.walk(os.path.normpath(path))
-        for root, dirs, files in list_dirs:
-            for f in files:
-                filename = os.path.join(root, f)
-                if self._is_valid_text_file(filename):
-                    file_list.append(filename)
+        p = os.path.normpath(path)
+        if os.path.isfile(p):
+            if self._is_valid_text_file(p):
+                file_list.append(p)
+        else:
+            if not os.path.isdir(p):
+                sys.stderr.write("Path given is not valid: %s\n" % p)            
+            list_dirs = os.walk(p)
+            for root, dirs, files in list_dirs:
+                for f in files:
+                    filename = os.path.join(root, f)
+                    if self._is_valid_text_file(filename):
+                        file_list.append(filename)
         return file_list

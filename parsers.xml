@@ -1,30 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Parsers>
+    <!-- error key word used for searching the log file for match -->
     <LineOperator>
         <Row>
+            <id>0001</id>
             <value>error</value>
+            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
+            <id>0002</id>
             <value>failed</value>
+            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
+            <id>0003</id>
             <value>warning</value>
+            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
+            <id>0004</id>
             <value>fatal</value>
+            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
-            <value>critical</value>
-            <case_sensitive>false</case_sensitive>
-        </Row>
-        <Row>
+            <id>0005</id>
             <value>exception</value>
+            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
+        </Row>
+        <Row>
+            <id>0006</id>
+            <value>Caused by:</value>
+            <timestamp>false</timestamp>
+            <case_sensitive>true</case_sensitive>
         </Row>
     </LineOperator>
+    <!-- key word used for filter out false positives -->
+    <LineFilter>
+        <Row>
+            <id>0001</id>
+            <value>error message: null</value>
+            <case_sensitive>false</case_sensitive>
+        </Row>
+    </LineFilter>
+    <!-- timestamp token and location in the log -->
+    <TimeStamp>
+        <Row>
+            <id>0001</id>
+            <token> </token>
+            <locations>0,1</locations>
+            <ignore>@</ignore>
+        </Row>
+        <Row>
+            <id>0002</id>
+            <token>&gt;</token>
+            <locations>0</locations>
+            <ignore>#</ignore>
+            <ignore>&lt;</ignore>
+            <ignore>&gt;</ignore>
+        </Row>
+        <Row>
+            <id>0003</id>
+            <token>,</token>
+            <locations>0</locations>
+        </Row>
+        <Row>
+            <id>0004</id>
+            <token>|</token>
+            <locations>3</locations>
+        </Row>
+        <Row>
+            <id>0005</id>
+            <token> </token>
+            <locations>1,2</locations>
+            <ignore>@</ignore>
+        </Row>
+    </TimeStamp>
 </Parsers>
 
