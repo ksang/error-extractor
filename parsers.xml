@@ -53,7 +53,6 @@
             <id>0001</id>
             <token> </token>
             <locations>0,1</locations>
-            <ignore>@</ignore>
         </Row>
         <Row>
             <id>0002</id>
@@ -67,6 +66,7 @@
             <id>0003</id>
             <token>,</token>
             <locations>0</locations>
+            <ignore>@</ignore>
         </Row>
         <Row>
             <id>0004</id>
@@ -77,7 +77,7 @@
             <id>0005</id>
             <token> </token>
             <locations>1,2</locations>
-            <ignore>@</ignore>
+            <msreplace>true</msreplace>
         </Row>
     </TimeStamp>
 </Parsers>

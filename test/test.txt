@@ -1,0 +1,3 @@
+3954   2013-03-06 02:34:02,224 INFO: Running task Appliance.prepareForApplianceQuickSetup
+
+####<Jan 15, 2015 11:01:37 AM CST> <Info> <Management> <am80baby> <biztier> <[ACTIVE] ExecuteThread: '0' for queue: 'weblogic.kernel.Default (self-tuning)'> <<WLS Kernel>> <> <> <1421290897187> <BEA-141187> <Java system properties are defined as follows: 

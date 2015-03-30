@@ -36,10 +36,21 @@ class TimeUtil:
         return False
 
     def is_in_window_or_unsure(self, timestamp):
+        if type(timestamp) is datetime.datetime:
+            time = timestamp
+        else:
+            time = self.parse(timestamp)
         time = self.parse(timestamp)
         if time is not None:
             if self.start_win > time or time > self.end_win:
                 return False
+        return True
+
+    def is_timestamp(self, timestamp):
+        try:
+            res = self.parser.parse(timestamp)
+        except ValueError, err:
+            return False
         return True
 
     def parse(self, timestamp):

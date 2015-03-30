@@ -130,11 +130,15 @@ class LineErrorExtractor(ErrorExtractor):
 
     def __line_timestamp(self, line):
         for fm in TIMESTAMP_FORMATTER.values():
+
             token = fm.get('token')
             locations = fm.get('locations')
             ignore = fm.get('ignore')
+            msreplace = fm.get('msreplace')
+
             buf = line.split(token)
             buf = [e for e in buf if e != '']
+            #print buf
             if len(buf) < 2:
                 continue
             if type(locations) == str:
@@ -147,15 +151,24 @@ class LineErrorExtractor(ErrorExtractor):
                 for pos in loc:
                     if int(pos) > len(buf) - 1:
                         break
-                    timestamp += buf[int(pos)]
-                    timestamp += token
-                if ignore is not None:
-                    for ig in ignore:
-                        timestamp = timestamp.replace(ig, '')
-                if len(timestamp) > 10:
-                    date = self.timeutil.parse(timestamp.strip())
-                    if date is not None:
-                        return date
+                    sec = buf[int(pos)]
+                    if ignore is not None:
+                        for ig in ignore:
+                            sec = sec.replace(ig, '')
+
+                    if msreplace is not None:
+                        sec = sec.replace(',','.')
+                    if not self.timeutil.is_timestamp(sec.strip()):
+                        break
+                    timestamp += sec
+                    if token == ' ':
+                        timestamp += token
+                if len(timestamp) < 10:
+                    break
+                #print timestamp
+                date = self.timeutil.parse(timestamp.strip())
+                if date is not None:
+                    return date
         return None
 
     def __line_parse(self, line):
@@ -182,6 +195,7 @@ class LineErrorExtractor(ErrorExtractor):
         res = []
         for line in data:
             ts = self.__line_timestamp(line)
+            print "ts: %s | line: %s" % (ts, line)
             if ts is not None:
                 if self.timeutil.is_in_window(ts):
                     res.append(line)
