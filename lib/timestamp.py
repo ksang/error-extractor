@@ -2,7 +2,7 @@
 Timestamp util for parsing logs
 '''
 
-BACKTRACK_MAX       = 50
+
 
 import datetime,sys
 from dateutil.parser import parser

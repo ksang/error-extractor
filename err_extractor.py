@@ -129,13 +129,14 @@ class LineErrorExtractor(ErrorExtractor):
                 return True
         return False
 
-    def __line_timestamp(self, line):
+    def __line_timestamp(self, line, get_id=False):
         for fm in TIMESTAMP_FORMATTER.values():
 
             token = fm.get('token')
             locations = fm.get('locations')
             ignore = fm.get('ignore')
             msreplace = fm.get('msreplace')
+            parser_id = fm.get('id')
 
             buf = line.split(token)
             buf = [e for e in buf if e != '']
@@ -169,7 +170,10 @@ class LineErrorExtractor(ErrorExtractor):
                 #print timestamp
                 date = self.timeutil.parse(timestamp.strip())
                 if date is not None:
-                    return date
+                    if get_id:
+                        return parser_id
+                    else:
+                        return date
         return None
 
     def __line_parse(self, line):
@@ -200,8 +204,13 @@ class LineErrorExtractor(ErrorExtractor):
             file_output = []
 
     def __find_prev_timestamp(self, data, idx, imin):
-        if idx <= 0:
-            return None;
+        '''
+        find prev line in data from idx to after or equal imin that it's timestamp can be parsed. 
+        the maximum find range is defined by BACKTRACK_MAX
+        return (lineno, timestamp)
+        '''
+        if idx < 1:
+            return (None, None);
         for i in range(idx-1, max(imin, idx-BACKTRACK_MAX)):
             ts = self.__line_timestamp(data[i])
             if ts is not None:
@@ -209,11 +218,61 @@ class LineErrorExtractor(ErrorExtractor):
         return (None, None)
 
     def __find_next_timestamp(self, data, idx, imax):
-        for i in range(idx+1, min(imax, idx+BACKTRACK_MAX)):
+        '''
+        find next line in data from idx to after or equal imin that it's timestamp can be parsed. 
+        the maximum find range is defined by BACKTRACK_MAX
+        return (lineno, timestamp)
+        '''
+        if idx >= imax:
+            return (None, None)
+        for i in range(idx+1, min(imax, idx+BACKTRACK_MAX, len(data)-1)):
             ts = self.__line_timestamp(data[i])
             if ts is not None:
                 return ts
-        return None            
+        return None
+
+    def __line_timestamp_with_id(line, parser_id):
+        pass
+
+    def __get_first_ts_parser_id(self, data):
+        for i in range(0, max(BACKTRACK_MAX, len(data)-1)):
+            parser_id = self.__line_timestamp(data[i], get_id=True)
+            if parser_id is not None:
+                return (i ,parser_id)
+        return (None, None)
+
+    def _time_parse(self, data):
+        res = []
+        if len(data) == 0:
+            return
+        (istart, ts_parser_id) = self.__get_first_ts_parser_id(data)
+        if ts_parser_id is None:
+            return res
+        for i in range(istart, len(data)):
+            ts = self.__line_timestamp_with_id(data[i], ts_parser_id)
+            if ts is not None:
+                if self.timeutil.is_in_window(ts):
+                    res.append((i, data[i]))
+        return res
+
+    def parse(self, kwargs):
+        window = kwargs.get('window')
+        if window is not None:
+            self.timeutil = TimeUtil(window[0], window[1])
+            for log_file in self.log_files:
+                data = open(log_file, 'r').readlines()
+                data = self.__time_parse(data)
+                self.__data_parse(data, log_file, kwargs)
+        else:
+            for log_file in self.log_files:
+                data = open(log_file, 'r').readlines()
+                self.__data_parse(data, log_file, kwargs)
+
+    def run(self, path, **kwargs):
+        self._get_log_files(path)
+        self.parse(kwargs)
+
+class LineErrorExtractorPrototype(LineErrorExtractor):
 
     def __find_start_in_win(self, data, imin, imax):
         if imin > imax:
@@ -294,17 +353,13 @@ class LineErrorExtractor(ErrorExtractor):
         win = self.__get_logs_in_win(data)
         if win[0] is None or win[1] is None:
             return res
-        for i in range(win[0], win[1])
+        for i in range(win[0], win[1]):
             ts = self.__line_timestamp(data[i])
             #print "ts: %s | line: %s" % (ts, line)
             if ts is not None:
                 if self.timeutil.is_in_window(ts):
-                    res.append((i, data[i])))
+                    res.append((i, data[i]))
         return res
-
-    def _time_parse(self, data):
-        if len(data) == 0:
-            return
 
     def parse(self, kwargs):
         window = kwargs.get('window')
@@ -312,16 +367,12 @@ class LineErrorExtractor(ErrorExtractor):
             self.timeutil = TimeUtil(window[0], window[1])
             for log_file in self.log_files:
                 data = open(log_file, 'r').readlines()
-                data = self.__time_parse(data)
+                data = self.__prototype_time_parse(data)
                 self.__data_parse(data, log_file, kwargs)
         else:
             for log_file in self.log_files:
                 data = open(log_file, 'r').readlines()
-                self.__data_parse(data, log_file, kwargs)
-
-    def run(self, path, **kwargs):
-        self._get_log_files(path)
-        self.parse(kwargs)
+                self.__data_parse(data, log_file, kwargs)        
 
 if __name__ == '__main__':
     args = ArgParser().parse()
