@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
-'''Configurations'''
-PARSER_DEFINITION_FILE      = 'parsers.xml'
+'''Configuration'''
+
+BACKTRACK_MAX               = 50
 
 '''Global Data'''
 LINE_OPERATOR               = {}
@@ -184,22 +185,126 @@ class LineErrorExtractor(ErrorExtractor):
     def __data_parse(self, data_list, log_file, kwargs):
         file_output = []
         display = kwargs.get('display')
-        for idx, line in enumerate(data_list):
-            if self.__line_parse(line):
-                file_output.append((idx, line))
+        if len(data_list) == 0:
+            return
+        if type(data_list[0]) is tuple:
+            for line in data_list:
+                if self.__line_parse(line[1]):
+                    file_output.append(line[0], line[1])
+        else:
+            for idx, line in enumerate(data_list):
+                if self.__line_parse(line):
+                    file_output.append((idx, line))
         if len(file_output) > 0:
             self.__output(log_file, file_output, display)
             file_output = []
 
-    def __time_parse(self, data):
+    def __find_prev_timestamp(self, data, idx, imin):
+        if idx <= 0:
+            return None;
+        for i in range(idx-1, max(imin, idx-BACKTRACK_MAX)):
+            ts = self.__line_timestamp(data[i])
+            if ts is not None:
+                return (i, ts)
+        return (None, None)
+
+    def __find_next_timestamp(self, data, idx, imax):
+        for i in range(idx+1, min(imax, idx+BACKTRACK_MAX)):
+            ts = self.__line_timestamp(data[i])
+            if ts is not None:
+                return ts
+        return None            
+
+    def __find_start_in_win(self, data, imin, imax):
+        if imin > imax:
+            return None
+        mid = (imin + imax) / 2
+        print "imin:%s imax:%s mid:%s" %(str(imin), str(imax), str(mid))
+        line = data[mid]
+        ts = self.__line_timestamp(line)
+        if ts is None:
+            return self.__find_start_in_win(data, imin, imax - 1)
+        else:
+            if self.timeutil.is_in_window(ts):
+                if mid <= imin:
+                    return mid
+                (i, prev_ts) = self.__find_prev_timestamp(data, mid, imin)
+                if prev_ts is not None:
+                    if not self.timeutil.is_in_window(prev_ts):
+                        return mid
+                    else:
+                        return self.__find_start_in_win(data, imin, mid-1)
+                else:
+                    return mid
+            else:
+                return self.__find_start_in_win(data, mid+1, imax)
+        return None
+
+    def __find_end_in_win(self, data, imin, imax):
+        if imin > imax:
+            return None
+        mid = (imin + imax) / 2
+        line = data[mid]
+        ts = self.__line_timestamp(line)
+        if ts is None:
+            return self.__find_end_in_win(data, imin, imax - 1)
+        else:
+            if self.timeutil.is_in_window(ts):
+                if mid == imin:
+                    return mid
+                next_ts = self.__find_next_timestamp(data, mid, imax)
+                if next_ts is not None:
+                    if not self.timeutil.is_in_window(next_ts):
+                        return mid
+                    else:
+                        return self.__find_end_in_win(data, mid+1, imax)
+                else:
+                    return mid
+            else:
+                return self.__find_end_in_win(data, imin, mid-1)
+        return None
+
+    def __get_logs_in_win(self, data):
+        # return line number range (start, end) for logs in time window
+        nol = len(data)
+        assert nol > 0
+        start = end = None
+        first_ts = self.__line_timestamp(data[0])
+        last_ts = self.__line_timestamp(data[nol-1])
+        print "first_ts:%s, last_ts:%s" % (first_ts, last_ts)
+        if first_ts is None:
+            return(start, end)
+        else:
+            if self.timeutil.is_after_window(first_ts):
+                return (start, end)
+            # if all the logs in this file is in window
+            if self.timeutil.is_in_window(first_ts):
+                start = 0
+            if last_ts is not None:
+                if self.timeutil.is_in_window(last_ts):
+                    end = nol - 1
+            if start is None:
+                start = self.__find_start_in_win(data, 0, nol-1)
+            if end is None:
+                end = self.__find_end_in_win(data, 0, nol-1)
+            return(start, end)
+
+    def __prototype_time_parse(self, data):
         res = []
-        for line in data:
-            ts = self.__line_timestamp(line)
-            print "ts: %s | line: %s" % (ts, line)
+        win = self.__get_logs_in_win(data)
+        if win[0] is None or win[1] is None:
+            return res
+        for i in range(win[0], win[1])
+            ts = self.__line_timestamp(data[i])
+            #print "ts: %s | line: %s" % (ts, line)
             if ts is not None:
                 if self.timeutil.is_in_window(ts):
-                    res.append(line)
+                    res.append((i, data[i])))
         return res
+
+    def _time_parse(self, data):
+        if len(data) == 0:
+            return
 
     def parse(self, kwargs):
         window = kwargs.get('window')

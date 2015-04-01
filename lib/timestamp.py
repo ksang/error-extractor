@@ -2,6 +2,8 @@
 Timestamp util for parsing logs
 '''
 
+BACKTRACK_MAX       = 50
+
 import datetime,sys
 from dateutil.parser import parser
 
@@ -21,6 +23,26 @@ class TimeUtil:
         if  self.start_win > self.end_win:
             sys.stderr.write("Bad window, start: %s, end: %s, start > end\n"
                                 % (start_win, end_win))
+
+    def is_before_window(self, timestamp):
+        if type(timestamp) is datetime.datetime:
+            time = timestamp
+        else:
+            time = self.parse(timestamp)
+        if time is not None:
+            if self.start_win > time:
+                return True
+        return False
+
+    def is_after_window(self, timestamp):
+        if type(timestamp) is datetime.datetime:
+            time = timestamp
+        else:
+            time = self.parse(timestamp)
+        if time is not None:
+            if self.end_win < time:
+                return True
+        return False
 
     def is_in_window(self, timestamp):
         if type(timestamp) is datetime.datetime:
@@ -42,8 +64,11 @@ class TimeUtil:
             time = self.parse(timestamp)
         time = self.parse(timestamp)
         if time is not None:
-            if self.start_win > time or time > self.end_win:
-                return False
+            try:
+                if self.start_win > time or time > self.end_win:
+                    return False
+            except Exception:
+                return True
         return True
 
     def is_timestamp(self, timestamp):
