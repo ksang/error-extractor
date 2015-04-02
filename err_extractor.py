@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
 '''Configuration'''
-
+# Max number of lines for timestamp backtracking.
 BACKTRACK_MAX               = 50
+# When doing timestamp parsing, how many lines of logs will be transfered if they don't 
+# have timestamp for further processing after a successful parse of line.
+# this setting is designed for error message such as java exceptions.
+NOTIMESTAMP_MAX             = 30
 
 '''Global Data'''
 LINE_OPERATOR               = {}
@@ -108,7 +112,9 @@ class ErrorExtractor:
         print "(%s errors)" % count
 
     def _print_error(self, lineno, error):
-        print "%s: %s" % (lineno, error.strip())
+        ln = str(lineno)
+        ln = (8 - len(ln)) * ' ' + ln
+        print "%s: %s" % (ln, error.strip())
 
 class LineErrorExtractor(ErrorExtractor):
 
@@ -276,6 +282,7 @@ class LineErrorExtractor(ErrorExtractor):
 
     def __time_parse(self, data):
         res = []
+        last_line_in_store = 0
         if len(data) == 0:
             return
         (istart, ts_parser_id) = self.__get_first_ts_parser_id(data)
@@ -286,6 +293,10 @@ class LineErrorExtractor(ErrorExtractor):
             ts = self.__line_timestamp_with_id(data[i], ts_parser_id)
             if ts is not None:
                 if self.timeutil.is_in_window(ts):
+                    res.append((i, data[i]))
+                    last_line_in_store = i
+            else:
+                if i - last_line_in_store <= NOTIMESTAMP_MAX:
                     res.append((i, data[i]))
         return res
 
