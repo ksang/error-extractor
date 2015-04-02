@@ -118,7 +118,7 @@ class LineErrorExtractor(ErrorExtractor):
         if display:
             self._print_filename(fn, len(err_list))
             for err in err_list:
-                self._print_error(err[0], err[1])
+                self._print_error(err[0]+1, err[1])
 
     def __line_filter(self, line):
         for ft in LINE_FILTER.values():
@@ -130,13 +130,13 @@ class LineErrorExtractor(ErrorExtractor):
         return False
 
     def __line_timestamp(self, line, get_id=False):
-        for fm in TIMESTAMP_FORMATTER.values():
+        for parser_id in TIMESTAMP_FORMATTER.keys():
 
+            fm = TIMESTAMP_FORMATTER[parser_id]
             token = fm.get('token')
             locations = fm.get('locations')
             ignore = fm.get('ignore')
             msreplace = fm.get('msreplace')
-            parser_id = fm.get('id')
 
             buf = line.split(token)
             buf = [e for e in buf if e != '']
@@ -194,7 +194,7 @@ class LineErrorExtractor(ErrorExtractor):
         if type(data_list[0]) is tuple:
             for line in data_list:
                 if self.__line_parse(line[1]):
-                    file_output.append(line[0], line[1])
+                    file_output.append((line[0], line[1]))
         else:
             for idx, line in enumerate(data_list):
                 if self.__line_parse(line):
@@ -207,7 +207,7 @@ class LineErrorExtractor(ErrorExtractor):
         '''
         find prev line in data from idx to after or equal imin that it's timestamp can be parsed. 
         the maximum find range is defined by BACKTRACK_MAX
-        return (lineno, timestamp)
+        return (lineidx, timestamp)
         '''
         if idx < 1:
             return (None, None);
@@ -221,7 +221,7 @@ class LineErrorExtractor(ErrorExtractor):
         '''
         find next line in data from idx to after or equal imin that it's timestamp can be parsed. 
         the maximum find range is defined by BACKTRACK_MAX
-        return (lineno, timestamp)
+        return (lineidx, timestamp)
         '''
         if idx >= imax:
             return (None, None)
@@ -231,21 +231,55 @@ class LineErrorExtractor(ErrorExtractor):
                 return ts
         return None
 
-    def __line_timestamp_with_id(line, parser_id):
-        pass
+    def __line_timestamp_with_id(self, line, parser_id):
+        fm = TIMESTAMP_FORMATTER[parser_id]
+        token = fm.get('token')
+        locations = fm.get('locations')
+        ignore = fm.get('ignore')
+        msreplace = fm.get('msreplace')
+
+        buf = line.split(token)
+        buf = [e for e in buf if e != '']
+        if len(buf) < 2:
+            return None
+        if type(locations) == str:
+            locations = [locations]
+        if type(ignore) == str:
+            ignore = [ignore]
+        for loc in locations:
+            loc = loc.split(',')
+        timestamp = ''
+        for pos in loc:
+            if int(pos) > len(buf) - 1:
+                break
+            sec = buf[int(pos)]
+            if ignore is not None:
+                for ig in ignore:
+                    sec = sec.replace(ig, '')
+                if msreplace is not None:
+                    sec = sec.replace(',','.')
+                timestamp += sec
+                if token == ' ':
+                    timestamp += token
+            if len(timestamp) < 10:
+                break
+        date = self.timeutil.parse(timestamp.strip())
+        return date
 
     def __get_first_ts_parser_id(self, data):
-        for i in range(0, max(BACKTRACK_MAX, len(data)-1)):
+        assert type(data) is list
+        for i in range(0, min(BACKTRACK_MAX, len(data)-1)):
             parser_id = self.__line_timestamp(data[i], get_id=True)
             if parser_id is not None:
                 return (i ,parser_id)
         return (None, None)
 
-    def _time_parse(self, data):
+    def __time_parse(self, data):
         res = []
         if len(data) == 0:
             return
         (istart, ts_parser_id) = self.__get_first_ts_parser_id(data)
+        #print (istart, ts_parser_id) 
         if ts_parser_id is None:
             return res
         for i in range(istart, len(data)):
@@ -378,4 +412,3 @@ if __name__ == '__main__':
     args = ArgParser().parse()
     ParserLoader(args.definition).run()
     LineErrorExtractor().run(args.path, window=args.window, display=True)
-

@@ -74,14 +74,14 @@ class TimeUtil:
     def is_timestamp(self, timestamp):
         try:
             res = self.parser.parse(timestamp)
-        except ValueError, err:
+        except Exception, err:
             return False
         return True
 
     def parse(self, timestamp):
         try:
             res = self.parser.parse(timestamp)
-        except ValueError, err:
+        except Exception, err:
             return None
         else:
             return res
