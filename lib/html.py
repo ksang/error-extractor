@@ -49,7 +49,7 @@ class HTMLGen:
         data = data.replace("&amp;", "&")
         return data
 
-    def gen_table_from_list(self, data_list=None):
+    def gen_table_from_list(self, data_list=None, escape=True):
         '''
         'data_list' is the input data, list elements are equal length tuples
         corresponding to each row of table.
@@ -59,7 +59,10 @@ class HTMLGen:
         for row in data_list:
             res += self.tab + '<tr>\n'
             for item in row:
-                res += self.tab*2 + '<td>' + self.__escape(str(item)) + '</td>\n'
+                if escape:
+                    res += self.tab*2 + '<td>' + self.__escape(str(item)) + '</td>\n'
+                else:
+                    res += self.tab*2 + '<td>' + str(item) + '</td>\n'
             res += self.tab + '</tr>\n'
         res += '</table>\n'
         return res

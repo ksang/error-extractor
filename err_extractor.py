@@ -19,6 +19,7 @@ import xml.etree.ElementTree as ET
 
 from lib.data import DataUtil
 from lib.timestamp import TimeUtil
+from lib.html import HTMLGen
 
 class ArgParser:
     def parse(self):
@@ -40,6 +41,9 @@ class ArgParser:
                               nargs = 2,
                               metavar = ('START_TIME','END_TIME'),
                               help = 'Start time and end time in YYYY-MM-DD HH:MM:SS')
+        __parser.add_argument('-o', '--output',
+                              type = str,
+                              help = 'Save report to a html file, provide filename.')
 
         return __parser.parse_args()
 
@@ -103,6 +107,7 @@ class ParserLoader:
 class ErrorExtractor:
     datautil = DataUtil()
     log_files = []
+    htmlgen = HTMLGen()
 
     def _get_log_files(self, path):
         self.log_files = self.datautil.get_text_files(path)
@@ -116,15 +121,49 @@ class ErrorExtractor:
         ln = (8 - len(ln)) * ' ' + ln
         print "%s: %s" % (ln, error.strip())
 
+    def _open_report_file(self, filename):
+        try:
+            outfile = open(filename, 'a')
+        except Exception, err:
+            sys.stderr.write("Failed to open output report file %s, error: %s" % (output, err))
+            sys.exit(1)
+        return outfile
+
+    def _write_report_file(self, fd, data):
+        try:
+            fd.write(data)
+        except Exception, err:
+            sys.stderr.write("Failed to write output report file %s, error: %s" % (output, err))
+            sys.exit(1)
+
+    def _check_report_file(self, filename):
+        if os.path.exists(filename):
+            try:
+                os.remove(filename)
+            except Exception, err:
+                sys.stderr.write("Failed to cleanup output report file %s, error: %s" % (output, err))
+                sys.exit(1)
+
+
 class LineErrorExtractor(ErrorExtractor):
 
     timeutil = None
 
-    def __output(self, fn, err_list, display):
+    def __output(self, fn, err_list, display, output):
         if display:
             self._print_filename(fn, len(err_list))
             for err in err_list:
                 self._print_error(err[0]+1, err[1])
+        if output is not None:
+            outfile = self._open_report_file(output)
+            report = ''
+            report += self.htmlgen.bold(fn) + '\n'
+            report += self.htmlgen.bold("(%s errors)" % len(err_list))
+            data_list = []
+            for err in err_list:
+                data_list.append((err[0]+1, self.htmlgen.raw(err[1])))
+            report += self.htmlgen.gen_table_from_list(data_list, escape=False)
+            self._write_report_file(outfile, report)
 
     def __line_filter(self, line):
         for ft in LINE_FILTER.values():
@@ -195,6 +234,7 @@ class LineErrorExtractor(ErrorExtractor):
     def __data_parse(self, data_list, log_file, kwargs):
         file_output = []
         display = kwargs.get('display')
+        output = kwargs.get('output')
         if len(data_list) == 0:
             return
         if type(data_list[0]) is tuple:
@@ -206,7 +246,7 @@ class LineErrorExtractor(ErrorExtractor):
                 if self.__line_parse(line):
                     file_output.append((idx, line))
         if len(file_output) > 0:
-            self.__output(log_file, file_output, display)
+            self.__output(log_file, file_output, display, output)
             file_output = []
 
     def __find_prev_timestamp(self, data, idx, imin):
@@ -314,10 +354,20 @@ class LineErrorExtractor(ErrorExtractor):
                 self.__data_parse(data, log_file, kwargs)
 
     def run(self, path, **kwargs):
+        out = kwargs.get('output')
+        if out is not None:
+            self._check_report_file(out)
         self._get_log_files(path)
-        self.parse(kwargs)      
+        self.parse(kwargs)
 
 if __name__ == '__main__':
     args = ArgParser().parse()
     ParserLoader(args.definition).run()
-    LineErrorExtractor().run(args.path, window=args.window, display=True)
+    if args.output is None:
+        dis = True
+    else:
+        dis = False
+    LineErrorExtractor().run(args.path,
+                             window=args.window,
+                             output=args.output,
+                             display=dis)

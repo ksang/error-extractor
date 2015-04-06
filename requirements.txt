@@ -1,1 +1,1 @@
-dateutil==1.5
+dateutil == 1.5
