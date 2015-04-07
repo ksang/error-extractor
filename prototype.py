@@ -109,20 +109,10 @@ class LineErrorExtractorPrototype(LineErrorExtractor):
     def __prototype_time_parse(self, data):
         res = []
         win = self.__get_logs_in_win(data)
-        last_line_in_store = float("-inf")
         if win[0] is None or win[1] is None:
             return res
-        ts_parser_id = self._line_timestamp(data[win[0]], get_id=True)
-        assert ts_parser_id is not None
         for i in range(win[0], min(win[1]+NOTIMESTAMP_MAX, len(data))):
-            ts = self._line_timestamp_with_id(data[i], ts_parser_id)
-            if ts is not None:
-                res.append((i, data[i]))
-                if self._line_parse(data[i], SECTION_STARTER):
-                    last_line_in_store = i
-            else:
-                if i - last_line_in_store <= NOTIMESTAMP_MAX:
-                    res.append((i, data[i]))
+            res.append((i, data[i]))
         return res
 
     def parse(self, kwargs):
