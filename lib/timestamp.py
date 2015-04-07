@@ -30,8 +30,11 @@ class TimeUtil:
         else:
             time = self.parse(timestamp)
         if time is not None:
-            if self.start_win > time:
-                return True
+            try:
+                if self.start_win.utctimetuple() > time.utctimetuple():
+                    return True
+            except Exception, err:
+                return False
         return False
 
     def is_after_window(self, timestamp):
@@ -40,8 +43,11 @@ class TimeUtil:
         else:
             time = self.parse(timestamp)
         if time is not None:
-            if self.end_win < time:
-                return True
+            try:
+                if self.end_win.utctimetuple() < time.utctimetuple():
+                    return True
+            except Exception, err:
+                return False
         return False
 
     def is_in_window(self, timestamp):
@@ -51,7 +57,8 @@ class TimeUtil:
             time = self.parse(timestamp)
         if time is not None:
             try:
-                if self.start_win <= time and time <= self.end_win:
+                if self.start_win.utctimetuple() <= time.utctimetuple() \
+                    and time.utctimetuple() <= self.end_win.utctimetuple():
                     return True
             except Exception:
                 return False
@@ -65,7 +72,8 @@ class TimeUtil:
         time = self.parse(timestamp)
         if time is not None:
             try:
-                if self.start_win > time or time > self.end_win:
+                if self.start_win.utctimetuple() > time.utctimetuple() \
+                    or time.utctimetuple() > self.end_win.utctimetuple():
                     return False
             except Exception:
                 return True

@@ -184,7 +184,7 @@ class LineErrorExtractor(ErrorExtractor):
                 return True
         return False
 
-    def __line_timestamp(self, line, get_id=False):
+    def _line_timestamp(self, line, get_id=False):
         for parser_id in TIMESTAMP_FORMATTER.keys():
 
             fm = TIMESTAMP_FORMATTER[parser_id]
@@ -231,7 +231,7 @@ class LineErrorExtractor(ErrorExtractor):
                         return date
         return None
 
-    def __line_parse(self, line, dictionary=LINE_OPERATOR):
+    def _line_parse(self, line, dictionary=LINE_OPERATOR):
         for op in dictionary.values():
             if op.get('case_sensitive') == 'false':
                 line = line.lower()
@@ -241,7 +241,7 @@ class LineErrorExtractor(ErrorExtractor):
                     return True
         return False
 
-    def __data_parse(self, data_list, log_file, kwargs):
+    def _data_parse(self, data_list, log_file, kwargs):
         file_output = []
         display = kwargs.get('display')
         output = kwargs.get('output')
@@ -250,46 +250,52 @@ class LineErrorExtractor(ErrorExtractor):
             return
         if type(data_list[0]) is tuple:
             for line in data_list:
-                if self.__line_parse(line[1]):
+                if self._line_parse(line[1]):
                     file_output.append((line[0], line[1]))
         else:
             for idx, line in enumerate(data_list):
-                if self.__line_parse(line):
+                if self._line_parse(line):
                     file_output.append((idx, line))
         if len(file_output) > 0:
             fn = self._get_relative_path(log_file, root_path)
             self.__output(fn, file_output, display, output)
             file_output = []
 
-    def __find_prev_timestamp(self, data, idx, imin):
+    def _find_prev_timestamp(self, data, idx, imin):
         '''
         find prev line in data from idx to after or equal imin that it's timestamp can be parsed. 
         the maximum find range is defined by BACKTRACK_MAX
         return (lineidx, timestamp)
         '''
-        if idx < 1:
-            return (None, None);
-        for i in range(idx-1, max(imin, idx-BACKTRACK_MAX)):
-            ts = self.__line_timestamp(data[i])
-            if ts is not None:
-                return (i, ts)
+        if idx >= imin and imin >= 0:
+            if idx == imin:
+                ts = self._line_timestamp(data[idx])
+                return (idx, ts)
+            low = max(imin, idx-BACKTRACK_MAX)
+            for ri in range(low, idx):
+                i = idx + low - ri
+                ts = self._line_timestamp(data[i])
+                if ts is not None:
+                    return (i, ts)
         return (None, None)
 
-    def __find_next_timestamp(self, data, idx, imax):
+    def _find_next_timestamp(self, data, idx, imax):
         '''
         find next line in data from idx to after or equal imin that it's timestamp can be parsed. 
         the maximum find range is defined by BACKTRACK_MAX
         return (lineidx, timestamp)
         '''
-        if idx >= imax:
-            return (None, None)
-        for i in range(idx+1, min(imax, idx+BACKTRACK_MAX, len(data)-1)):
-            ts = self.__line_timestamp(data[i])
-            if ts is not None:
-                return ts
-        return None
+        if idx <= imax and idx >= 0:
+            if idx == imax:
+                ts = self._line_timestamp(data[idx])
+                return (idx, ts)
+            for i in range(idx, min(imax, idx+BACKTRACK_MAX, len(data)-1)):
+                ts = self._line_timestamp(data[i])
+                if ts is not None:
+                    return (i, ts)
+        return (None, None)
 
-    def __line_timestamp_with_id(self, line, parser_id):
+    def _line_timestamp_with_id(self, line, parser_id):
         fm = TIMESTAMP_FORMATTER[parser_id]
         token = fm.get('token')
         locations = fm.get('locations')
@@ -327,7 +333,7 @@ class LineErrorExtractor(ErrorExtractor):
     def __get_first_ts_parser_id(self, data):
         assert type(data) is list
         for i in range(0, min(BACKTRACK_MAX, len(data)-1)):
-            parser_id = self.__line_timestamp(data[i], get_id=True)
+            parser_id = self._line_timestamp(data[i], get_id=True)
             if parser_id is not None:
                 return (i ,parser_id)
         return (None, None)
@@ -336,17 +342,17 @@ class LineErrorExtractor(ErrorExtractor):
         res = []
         last_line_in_store = float("-inf")
         if len(data) == 0:
-            return
+            return res
         (istart, ts_parser_id) = self.__get_first_ts_parser_id(data)
         #print (istart, ts_parser_id) 
         if ts_parser_id is None:
             return res
         for i in range(istart, len(data)):
-            ts = self.__line_timestamp_with_id(data[i], ts_parser_id)
+            ts = self._line_timestamp_with_id(data[i], ts_parser_id)
             if ts is not None:
                 if self.timeutil.is_in_window(ts):
                     res.append((i, data[i]))
-                    if self.__line_parse(data[i], SECTION_STARTER):
+                    if self._line_parse(data[i], SECTION_STARTER):
                         last_line_in_store = i
             else:
                 if i - last_line_in_store <= NOTIMESTAMP_MAX:
@@ -360,11 +366,11 @@ class LineErrorExtractor(ErrorExtractor):
             for log_file in self.log_files:
                 data = open(log_file, 'r').readlines()
                 data = self.__time_parse(data)
-                self.__data_parse(data, log_file, kwargs)
+                self._data_parse(data, log_file, kwargs)
         else:
             for log_file in self.log_files:
                 data = open(log_file, 'r').readlines()
-                self.__data_parse(data, log_file, kwargs)
+                self._data_parse(data, log_file, kwargs)
 
     def run(self, **kwargs):
         out = kwargs.get('output')

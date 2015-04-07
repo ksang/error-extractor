@@ -20,7 +20,6 @@
         <Row>
             <id>0004</id>
             <value>fatal</value>
-            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>

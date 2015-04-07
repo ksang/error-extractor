@@ -1,0 +1,1 @@
+200605 2015-02-26 05:59:11,076 INFO: Changing permissions of /opt/rsa/am/utils/bin/appliance/manageMount.sh to 555
