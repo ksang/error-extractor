@@ -5,19 +5,16 @@
         <Row>
             <id>0001</id>
             <value>error</value>
-            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
             <id>0002</id>
             <value>failed</value>
-            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
             <id>0003</id>
             <value>warning</value>
-            <timestamp>true</timestamp>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
@@ -29,13 +26,12 @@
         <Row>
             <id>0005</id>
             <value>exception</value>
-            <timestamp>true</timestamp>
+            <starter>true</starter>
             <case_sensitive>false</case_sensitive>
         </Row>
         <Row>
             <id>0006</id>
             <value>Caused by:</value>
-            <timestamp>false</timestamp>
             <case_sensitive>true</case_sensitive>
         </Row>
     </LineOperator>

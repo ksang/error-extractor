@@ -10,6 +10,7 @@ NOTIMESTAMP_MAX             = 30
 
 '''Global Data'''
 LINE_OPERATOR               = {}
+SECTION_STARTER             = {}
 LINE_FILTER                 = {}
 TIMESTAMP_FORMATTER         = {}
 
@@ -26,8 +27,7 @@ class ArgParser:
         # Parse arguments from cli
         import argparse
         from argparse import RawTextHelpFormatter
-        __parser = argparse.ArgumentParser(description= '\tError Extractor, get error messages from log files.',
-                                           formatter_class = RawTextHelpFormatter)
+        __parser = argparse.ArgumentParser(formatter_class = RawTextHelpFormatter)
         __parser.add_argument('-p', '--path',
                               type = str,
                               required = True,
@@ -98,11 +98,18 @@ class ParserLoader:
             sys.exit(1)
         return root
 
+    def _load_section_starter(self):
+        for pid in LINE_OPERATOR.keys():
+            starter = LINE_OPERATOR[pid].get('starter')
+            if starter is not None:
+                SECTION_STARTER[pid] = LINE_OPERATOR[pid]
+
     def run(self):
         root = self._load_file()
         self._load_line_operator(root)
         self._load_line_filter(root)
         self._load_timestamp_formatter(root)
+        self._load_section_starter()
 
 class ErrorExtractor:
     datautil = DataUtil()
@@ -144,6 +151,9 @@ class ErrorExtractor:
                 sys.stderr.write("Failed to cleanup output report file %s, error: %s" % (output, err))
                 sys.exit(1)
 
+    def _get_relative_path(self, full_path, root_path):
+        assert len(full_path) > len(root_path)
+        return full_path[len(root_path):]
 
 class LineErrorExtractor(ErrorExtractor):
 
@@ -221,8 +231,8 @@ class LineErrorExtractor(ErrorExtractor):
                         return date
         return None
 
-    def __line_parse(self, line):
-        for op in LINE_OPERATOR.values():
+    def __line_parse(self, line, dictionary=LINE_OPERATOR):
+        for op in dictionary.values():
             if op.get('case_sensitive') == 'false':
                 line = line.lower()
             key = op.get('value')
@@ -235,6 +245,7 @@ class LineErrorExtractor(ErrorExtractor):
         file_output = []
         display = kwargs.get('display')
         output = kwargs.get('output')
+        root_path = kwargs.get('path')
         if len(data_list) == 0:
             return
         if type(data_list[0]) is tuple:
@@ -246,7 +257,8 @@ class LineErrorExtractor(ErrorExtractor):
                 if self.__line_parse(line):
                     file_output.append((idx, line))
         if len(file_output) > 0:
-            self.__output(log_file, file_output, display, output)
+            fn = self._get_relative_path(log_file, root_path)
+            self.__output(fn, file_output, display, output)
             file_output = []
 
     def __find_prev_timestamp(self, data, idx, imin):
@@ -334,7 +346,8 @@ class LineErrorExtractor(ErrorExtractor):
             if ts is not None:
                 if self.timeutil.is_in_window(ts):
                     res.append((i, data[i]))
-                    last_line_in_store = i
+                    if self.__line_parse(data[i], SECTION_STARTER):
+                        last_line_in_store = i
             else:
                 if i - last_line_in_store <= NOTIMESTAMP_MAX:
                     res.append((i, data[i]))
@@ -353,10 +366,11 @@ class LineErrorExtractor(ErrorExtractor):
                 data = open(log_file, 'r').readlines()
                 self.__data_parse(data, log_file, kwargs)
 
-    def run(self, path, **kwargs):
+    def run(self, **kwargs):
         out = kwargs.get('output')
         if out is not None:
             self._check_report_file(out)
+        path = kwargs.get('path')
         self._get_log_files(path)
         self.parse(kwargs)
 
@@ -367,7 +381,7 @@ if __name__ == '__main__':
         dis = True
     else:
         dis = False
-    LineErrorExtractor().run(args.path,
+    LineErrorExtractor().run(path=args.path,
                              window=args.window,
                              output=args.output,
                              display=dis)

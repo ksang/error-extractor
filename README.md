@@ -7,6 +7,11 @@ User can specify time window for the error messages.
 ####Requirements:
     dateutil == 1.5
 
+######dateutil:
+[Download](http://labix.org/download/python-dateutil/python-dateutil-1.5.tar.gz "http://labix.org/download/python-dateutil/python-dateutil-1.5.tar.gz")
+[Reference](http://labix.org/python-dateutil "http://labix.org/python-dateutil")
+
+
 ####Usage:
     err_extractor.py [-h] -p PATH [-d DEFINITION] [-w START_TIME END_TIME]
                             [-o OUTPUT]
