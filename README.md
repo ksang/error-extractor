@@ -14,8 +14,9 @@ User can specify time window for the error messages.
 
 
 ####Usage:
-err_extractor.py [-h] -p PATH [-d DEFINITION] [-w START_TIME END_TIME]
-                              [-o OUTPUT] [-f]
+
+    err_extractor.py [-h] -p PATH [-d DEFINITION] [-w START_TIME END_TIME]
+                                  [-o OUTPUT] [-f]
 
     optional arguments:
       -h, --help            show this help message and exit
