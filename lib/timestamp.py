@@ -23,7 +23,9 @@ class TimeUtil:
         if  self.start_win > self.end_win:
             sys.stderr.write("Bad window, start: %s, end: %s, start > end\n"
                                 % (start_win, end_win))
-
+    def print_window(self):
+        print "Window start: %s, end: %s" % (self.start_win, self.end_win)
+        
     def is_before_window(self, timestamp):
         if type(timestamp) is datetime.datetime:
             time = timestamp
